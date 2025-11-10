@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -32,10 +32,10 @@ async function run() {
     const foodsCollection = database.collection("foods");
 
     // available foods
-    app.get('/foods', async(req,res)=>{
-        const cursor = foodsCollection.find()
-        const result = await cursor.toArray()
-        res.send(result)
+    app.get('/foods', async (req, res) => {
+      const cursor = foodsCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
     })
 
     // get featured foods
@@ -46,9 +46,20 @@ async function run() {
     });
 
     // get food details
-    app.get
+    app.get('/foods/:id', async (req, res) => {
+      const id = req.params.id
+      const query = ({ _id: new ObjectId(id) })
+      const result = await foodsCollection.findOne(query)
+      res.send(result)
+    })
 
-    // post 
+    // post add food
+    app.post('/add-food', async (req, res) => {
+      const newFood = req.body
+      const result = await foodsCollection.insertOne(newFood)
+      res.send(result)
+    })
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("✅ Pinged your deployment. You successfully connected to MongoDB!");
