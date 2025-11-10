@@ -57,10 +57,10 @@ async function run() {
     app.get('/add-food', async (req, res) => {
 
       const email = req.query.email
-            const query = {}
-            if (email) {
-                query.donator_email = email
-            }
+      const query = {}
+      if (email) {
+        query.donator_email = email
+      }
 
       const cursor = foodsCollection.find(query)
       const result = await cursor.toArray()
@@ -71,6 +71,30 @@ async function run() {
     app.post('/add-food', async (req, res) => {
       const newFood = req.body
       const result = await foodsCollection.insertOne(newFood)
+      res.send(result)
+    })
+
+    // update add food
+    app.patch('/add-food/:id', async (req, res) => {
+      const id = req.params.id
+      const updateFood = req.body
+      const query = { _id: new ObjectId(id) }
+      const update = {
+        $set: {
+          name: updateFood.name,
+
+        }
+      }
+      const options = {}
+      const result = await foodsCollection.updateOne(query, update, options)
+      res.send(result)
+    })
+
+    // delete add food
+    app.delete('/add-food/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await foodsCollection.deleteOne(query)
       res.send(result)
     })
 
