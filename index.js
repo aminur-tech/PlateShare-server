@@ -53,6 +53,20 @@ async function run() {
       res.send(result)
     })
 
+    // add food
+    app.get('/add-food', async (req, res) => {
+
+      const email = req.query.email
+            const query = {}
+            if (email) {
+                query.donator_email = email
+            }
+
+      const cursor = foodsCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
     // post add food
     app.post('/add-food', async (req, res) => {
       const newFood = req.body
