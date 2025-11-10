@@ -76,19 +76,24 @@ async function run() {
 
     // update add food
     app.patch('/add-food/:id', async (req, res) => {
-      const id = req.params.id
-      const updateFood = req.body
-      const query = { _id: new ObjectId(id) }
+      const id = req.params.id;
+      const updateFood = req.body;
+      const query = { _id: new ObjectId(id) };
       const update = {
         $set: {
-          name: updateFood.name,
+          food_name: updateFood.food_name,
+          food_image: updateFood.food_image,   // ✅ Added image field
+          food_quantity: updateFood.food_quantity,
+          pickup_location: updateFood.pickup_location,
+          expire_date: updateFood.expire_date,
+        },
+      };
 
-        }
-      }
-      const options = {}
-      const result = await foodsCollection.updateOne(query, update, options)
-      res.send(result)
-    })
+      const options = { upsert: false };
+      const result = await foodsCollection.updateOne(query, update, options);
+      res.send(result);
+    });
+
 
     // delete add food
     app.delete('/add-food/:id', async (req, res) => {
