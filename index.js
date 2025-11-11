@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
     const database = client.db("PlateShare");
     const foodsCollection = database.collection("foods");
+    const foodsRequestCollection = database.collection('food-request')
 
     // available foods
     app.get('/foods', async (req, res) => {
@@ -55,7 +56,6 @@ async function run() {
 
     // add food
     app.get('/add-food', async (req, res) => {
-
       const email = req.query.email
       const query = {}
       if (email) {
@@ -82,7 +82,7 @@ async function run() {
       const update = {
         $set: {
           food_name: updateFood.food_name,
-          food_image: updateFood.food_image,   // ✅ Added image field
+          food_image: updateFood.food_image,
           food_quantity: updateFood.food_quantity,
           pickup_location: updateFood.pickup_location,
           expire_date: updateFood.expire_date,
@@ -102,6 +102,57 @@ async function run() {
       const result = await foodsCollection.deleteOne(query)
       res.send(result)
     })
+
+
+    // food request
+    // Get user requests by email
+    app.get('/food-request', async (req, res) => {
+      const email = req.query.userEmail;
+      const query = email ? { userEmail: email } : {};
+      const result = await foodsRequestCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // food request post
+    app.post('/food-request', async (req, res) => {
+      const newRequest = req.body
+      const result = await foodsRequestCollection.insertOne(newRequest)
+      res.send(result)
+    })
+
+    // Delete a food request
+    app.delete('/food-request/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await foodsRequestCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    
+    // Accept / Reject a food request
+    app.patch('/food-request/:id/status', async (req, res) => {
+      const { id } = req.params;
+      const { status } = req.body; // 'accepted' or 'rejected'
+      const query = { _id: new ObjectId(id) };
+
+      const update = { $set: { status } };
+      const result = await foodsRequestCollection.updateOne(query, update);
+
+      // If accepted, also update the food status
+      if (status === "accepted") {
+        const request = await foodsRequestCollection.findOne(query);
+        await foodsCollection.updateOne(
+          { _id: new ObjectId(request.foodId) },
+          { $set: { food_status: 'donated' } }
+        );
+      }
+
+      res.send(result);
+    });
+
+
+
+
 
 
     await client.db("admin").command({ ping: 1 });
